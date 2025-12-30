@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 230 25% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 230 25% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 230 25% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 263 70% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 230 25% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 230 20% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 24 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --border: 230 20% 20%;
+    --input: 230 20% 18%;
+    --ring: 263 70% 58%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 230 25% 10%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-primary: 263 70% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 230 25% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 230 20% 18%;
+    --sidebar-ring: 263 70% 58%;
+
+    /* Custom tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(263 70% 58%) 0%, hsl(280 70% 50%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(24 100% 60%) 0%, hsl(35 100% 55%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(230 25% 13%) 0%, hsl(230 25% 10%) 100%);
+    --glow-primary: 0 0 30px hsl(263 70% 58% / 0.3);
+    --glow-accent: 0 0 30px hsl(24 100% 60% / 0.3);
+    
+    /* Status colors */
+    --status-active: 142 76% 45%;
+    --status-restricted: 38 92% 50%;
+    --status-inactive: 215 20% 50%;
+    --status-live: 142 76% 45%;
+  }
+
+  .dark {
+    --background: 230 25% 8%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+  
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-active {
+    @apply bg-[hsl(var(--status-active)/0.15)] text-[hsl(var(--status-active))];
+  }
+  
+  .status-restricted {
+    @apply bg-[hsl(var(--status-restricted)/0.15)] text-[hsl(var(--status-restricted))];
+  }
+  
+  .status-inactive {
+    @apply bg-[hsl(var(--status-inactive)/0.15)] text-[hsl(var(--status-inactive))];
+  }
+  
+  .live-indicator {
+    @apply inline-flex items-center gap-1.5 text-xs font-medium text-[hsl(var(--status-live))];
+  }
+  
+  .live-indicator::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full bg-[hsl(var(--status-live))] animate-pulse;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+}
