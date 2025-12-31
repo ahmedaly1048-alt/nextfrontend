@@ -1,5 +1,8 @@
 "use client";
 
+/* =====================================================
+   Imports
+===================================================== */
 import { useState, useEffect, useRef } from "react";
 import {
   Shield,
@@ -13,7 +16,13 @@ import {
   EyeOff,
 } from "lucide-react";
 import AnimatedAlert from "@/components/AnimatedAlert";
+import Link from "next/link";
 
+/* =====================================================
+   Types & Interfaces
+===================================================== */
+
+// Main form state structure
 interface FormType {
   name: string;
   email: string;
@@ -23,37 +32,53 @@ interface FormType {
   role: string;
 }
 
+// Error object (key = field name, value = error message)
 interface ErrorType {
   [key: string]: string;
 }
 
+// Password strength indicator type
 interface PasswordStrength {
   label: "WEAK" | "MEDIUM" | "STRONG";
   bars: number;
   color: string;
 }
 
-/* ---------------- Password Strength ---------------- */
+/* =====================================================
+   Password Strength Helper
+===================================================== */
 function getPasswordStrength(password: string): PasswordStrength | null {
+  // No password → no strength indicator
   if (!password) return null;
 
   let score = 0;
+
+  // Basic password checks
   if (password.length >= 6) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
+  // Return strength object based on score
   if (score <= 1) return { label: "WEAK", bars: 1, color: "bg-red-500" };
   if (score === 2 || score === 3)
     return { label: "MEDIUM", bars: 3, color: "bg-yellow-500" };
+
   return { label: "STRONG", bars: 4, color: "bg-green-500" };
 }
 
-/* ---------------- Main Component ---------------- */
+/* =====================================================
+   Main Component
+===================================================== */
 export default function IdentityCard() {
+  /* ---------------- UI State ---------------- */
   const [showPassword, setShowPassword] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  /* ---------------- Refs ---------------- */
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  /* ---------------- Form State ---------------- */
   const [form, setForm] = useState<FormType>({
     name: "",
     email: "",
@@ -63,6 +88,7 @@ export default function IdentityCard() {
     role: "",
   });
 
+  /* ---------------- Error State ---------------- */
   const [errors, setErrors] = useState<ErrorType>({
     name: "",
     email: "",
@@ -72,13 +98,16 @@ export default function IdentityCard() {
     role: "",
   });
 
-  const [submitted, setSubmitted] = useState(false); // track first submit
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  /* ---------------- Submission & Alerts ---------------- */
+  const [submitted, setSubmitted] = useState(false);
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "info" | "warning";
     message: string;
   } | null>(null);
 
+  /* =====================================================
+     Close dropdown when clicking outside
+  ===================================================== */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -88,37 +117,49 @@ export default function IdentityCard() {
         setDropdownOpen(false);
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /* ---------------- Derived Password Strength ---------------- */
   const strength = getPasswordStrength(form.password);
 
+  /* =====================================================
+     Handle Field Changes
+  ===================================================== */
   const handleChange = (key: keyof FormType, value: string) => {
-    setForm({ ...form, [key]: value });
+    // Update form state
+    setForm((prev) => ({ ...prev, [key]: value }));
 
-    // Dynamic validation
+    // If already submitted → validate live
     if (submitted) {
       validateField(key, value);
     } else {
-      // before first submit, clear error dynamically
+      // Otherwise clear error while typing
       setErrors((prev) => ({ ...prev, [key]: "" }));
     }
   };
 
+  /* =====================================================
+     Single Field Validation
+  ===================================================== */
   const validateField = (key: keyof FormType, value: string) => {
     let error = "";
+
     switch (key) {
       case "name":
         if (!value.trim()) error = "Name is required.";
         else if (!/^[A-Za-z\s]{2,}$/.test(value))
           error = "Enter a valid name (letters only).";
         break;
+
       case "email":
         if (!value.trim()) error = "Email is required.";
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
           error = "Enter a valid email.";
         break;
+
       case "password":
         if (!value) error = "Password is required.";
         else if (value.length < 6) error = "Password must be at least 6 chars.";
@@ -127,18 +168,24 @@ export default function IdentityCard() {
         else if (!/[0-9]/.test(value))
           error = "Password must include at least one number.";
         break;
+
       case "orgCode":
         if (!value.trim()) error = "Org code is required.";
         else if (!/^\d{6}$/.test(value)) error = "Org code must be 6 digits.";
         break;
+
       case "role":
         if (!["User", "Admin"].includes(value))
           error = "Role must be User or Admin.";
         break;
     }
+
     setErrors((prev) => ({ ...prev, [key]: error }));
   };
 
+  /* =====================================================
+     Guideline (Live Hint While Typing)
+  ===================================================== */
   const getGuideline = (key: keyof FormType, value: string) => {
     if (!value) return "";
 
@@ -168,14 +215,18 @@ export default function IdentityCard() {
     return "";
   };
 
+  /* =====================================================
+     Submit Handler
+  ===================================================== */
   const handleSubmit = () => {
     setSubmitted(true);
 
-    // Validate all required fields
+    // Validate all fields
     Object.keys(form).forEach((key) =>
       validateField(key as keyof FormType, form[key as keyof FormType])
     );
 
+    // Required fields list
     const requiredFields: (keyof FormType)[] = [
       "name",
       "email",
@@ -183,10 +234,14 @@ export default function IdentityCard() {
       "orgCode",
       "role",
     ];
-    const invalidFields = requiredFields.filter(
-      (f) => !form[f] || errors[f]
-    );
 
+    // Check for invalid required fields
+    const invalidFields = requiredFields.filter((f) => {
+      const value = form[f];
+      return !value || getGuideline(f, value) !== "";
+    });
+
+    // Show error alert if invalid
     if (invalidFields.length > 0) {
       setAlert({
         type: "error",
@@ -195,26 +250,27 @@ export default function IdentityCard() {
       return;
     }
 
+    // Success alert
     setAlert({
       type: "success",
       message: "AI Identity created successfully!",
     });
+
     console.log("Form Submitted:", form);
   };
 
+  /* =====================================================
+     Auto-dismiss Alert
+  ===================================================== */
   useEffect(() => {
-    if (alert) {
-      const timer = setTimeout(() => setAlert(null), 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!alert) return;
+    const timer = setTimeout(() => setAlert(null), 3000);
+    return () => clearTimeout(timer);
   }, [alert]);
 
-  const getInputBg = (value: string) =>
-    value ? "bg-[#0E1A33]" : "bg-gray-800/20";
-
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black px-4 sm:px-6">
-      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[490px] rounded-2xl bg-black border border-[#1B2336] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6">
+      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[490px] rounded-2xl bg-[#030711] border border-[#18181B] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
         {/* Header */}
         <div className="flex flex-col items-center gap-2 mb-6">
           <div className="w-14 h-13 sm:w-15 sm:h-14 rounded-xl bg-[#0E1A33] flex items-center justify-center border border-[#1E2A45]">
@@ -230,7 +286,7 @@ export default function IdentityCard() {
 
         <Field
           icon={<User size={16} />}
-          label="FULL NAME"
+          label="Full Name"
           placeholder="John Doe"
           value={form.name}
           onChange={(v) => handleChange("name", v)}
@@ -242,7 +298,7 @@ export default function IdentityCard() {
 
         <Field
           icon={<Mail size={16} />}
-          label="WORK EMAIL"
+          label="Work Email"
           placeholder="info@subventa.com"
           value={form.email}
           onChange={(v) => handleChange("email", v)}
@@ -255,7 +311,7 @@ export default function IdentityCard() {
         {/* Password */}
         <div className="mb-4">
           <label className="text-xs text-gray-300 mb-1.5 block font-semibold">
-            SECURE PASSWORD <span className="text-[#2563EB]">*</span>
+            Secure Password <span className="text-[#2563EB]">*</span>
             {strength && (
               <span
                 className={`float-right text-[11px] font-bold ${
@@ -277,7 +333,7 @@ export default function IdentityCard() {
                 ? "border-red-500"
                 : form.password
                 ? "bg-[#0E1A33] border-blue-500"
-                : "bg-gray-800/20 border-[#1E2A45]"
+                : "bg-[#16181D] border-[#1E2A45]"
             }`}
           >
             <Lock size={16} className="text-gray-400" />
@@ -299,12 +355,16 @@ export default function IdentityCard() {
             </button>
           </div>
 
-           {(errors.password && submitted) && (
-            <p className="text-[11px] text-red-500 mt-1 italic">{errors.password}</p>
+          {errors.password && submitted && (
+            <p className="text-[11px] text-red-500 mt-1 italic">
+              {errors.password}
+            </p>
           )}
 
-          {(!errors.password && form.password) && (
-            <p className="text-[11px] text-gray-400 mt-1 italic">{getGuideline("password", form.password)}</p>
+          {!errors.password && form.password && (
+            <p className="text-[11px] text-gray-400 mt-1 italic">
+              {getGuideline("password", form.password)}
+            </p>
           )}
 
           {/* Strength Bars */}
@@ -320,13 +380,11 @@ export default function IdentityCard() {
               ))}
             </div>
           )}
-
-         
         </div>
 
         <Field
           icon={<Fingerprint size={16} />}
-          label="ORGANIZATION PERSONALITY CODE"
+          label="Organization Personality Code"
           placeholder="233665"
           value={form.orgCode}
           onChange={(v) => handleChange("orgCode", v)}
@@ -335,11 +393,14 @@ export default function IdentityCard() {
           submitted={submitted}
           required
         />
+        <p className="text-[10px] text-gray-500 -mt-3.5 mb-4 italic font-semibold">
+          Unique signature defining your AI’s behavioral constraints.
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
           <Field
             icon={<Building2 size={16} />}
-            label="ORGANIZATION"
+            label="Organization"
             placeholder="Acme"
             value={form.organization}
             onChange={(v) => handleChange("organization", v)}
@@ -349,11 +410,17 @@ export default function IdentityCard() {
           {/* Role Dropdown */}
           <div className="mb-4 relative" ref={dropdownRef}>
             <label className="text-xs text-gray-300 mb-1.5 block font-semibold">
-              ROLE <span className="text-[#2563EB]">*</span>
+              Role <span className="text-[#2563EB]">*</span>
             </label>
 
             <div
-              className="flex items-center justify-between h-12 px-3 bg-gray-800/20 border border-[#1E2A45] rounded-lg cursor-pointer"
+              className={`flex items-center justify-between h-12 px-3 rounded-lg cursor-pointer ${
+                errors.role && submitted
+                  ? "border border-red-500 bg-gray-800/20"
+                  : form.role
+                  ? "border border-blue-500 bg-[#0E1A33]"
+                  : "border border-[#1E2A45] bg-gray-800/20"
+              }`}
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
               <span className="text-sm">{form.role || "Select Role"}</span>
@@ -386,9 +453,11 @@ export default function IdentityCard() {
           Create AI Identity
         </button>
 
+        <Link href="/activate/workspace">
         <p className="text-center text-xs text-gray-400 mt-4 cursor-pointer hover:text-gray-300">
           Back to Entry
         </p>
+        </Link>
 
         {alert && (
           <AnimatedAlert
@@ -402,7 +471,9 @@ export default function IdentityCard() {
   );
 }
 
-/* ---------------- Field Component ---------------- */
+/* =====================================================
+   Reusable Field Component
+===================================================== */
 interface FieldProps {
   icon: React.ReactNode;
   label: string;
@@ -424,15 +495,15 @@ function Field({
   guideline,
   error,
   required,
-  submitted,
 }: FieldProps) {
+  // Border color logic
   const borderColorClass = error
     ? "border-red-500"
     : value
     ? "border-blue-500"
     : "border-[#1E2A45]";
 
-  // Show guideline if there's no error and field is non-empty
+  // Show guideline only when typing & no error
   const showGuideline = value && !error;
 
   return (
@@ -443,7 +514,7 @@ function Field({
       </label>
 
       <div
-        className={`flex items-center gap-2 rounded-lg px-3 h-11 sm:h-12 border ${borderColorClass} bg-gray-800/20 focus-within:border-blue-500 transition-colors`}
+        className={`flex items-center gap-2 rounded-lg px-3 h-12 border ${borderColorClass} bg-[#16181D] focus-within:border-blue-500 transition-colors`}
       >
         <span className="text-gray-400">{icon}</span>
         <input
@@ -455,6 +526,7 @@ function Field({
       </div>
 
       {error && <p className="text-[11px] text-red-500 mt-1 italic">{error}</p>}
+
       {showGuideline && guideline && (
         <p className="text-[11px] text-blue-400 mt-1 italic">{guideline}</p>
       )}

@@ -7,8 +7,8 @@ export default function ActivateIdentityLanding() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black px-4 sm:px-6">
-      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[480px] rounded-2xl bg-black border border-[#1B2336] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-6 sm:p-7 md:p-8 text-white">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6">
+      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[480px] rounded-2xl bg-[#030711] border border-[#18181B] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-6 sm:p-7 md:p-8 text-white">
         {/* Header */}
         <div className="flex flex-col items-center gap-3 mb-7 sm:mb-8">
           <div className="w-12 h-12 sm:w-14 sm:h-13 rounded-xl bg-[#0E1A33] flex items-center justify-center border border-[#1E2A45]">
