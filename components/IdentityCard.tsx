@@ -270,7 +270,7 @@ export default function IdentityCard() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6">
-      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[490px] rounded-2xl bg-[#030711] border border-[#18181B] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
+      <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[450px] rounded-2xl bg-[#030711] border border-[#18181B] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
         {/* Header */}
         <div className="flex flex-col items-center gap-2 mb-6">
           <div className="w-14 h-13 sm:w-15 sm:h-14 rounded-xl bg-[#0E1A33] flex items-center justify-center border border-[#1E2A45]">
@@ -454,9 +454,9 @@ export default function IdentityCard() {
         </button>
 
         <Link href="/activate/workspace">
-        <p className="text-center text-xs text-gray-400 mt-4 cursor-pointer hover:text-gray-300">
-          Back to Entry
-        </p>
+          <p className="text-center text-xs text-gray-400 mt-4 cursor-pointer hover:text-gray-300">
+            Back to Entry
+          </p>
         </Link>
 
         {alert && (
@@ -504,7 +504,7 @@ function Field({
     : "border-[#1E2A45]";
 
   // Show guideline only when typing & no error
-  const showGuideline = value && !error;
+  const showGuideline = value && guideline;
 
   return (
     <div className="mb-4">
@@ -527,8 +527,14 @@ function Field({
 
       {error && <p className="text-[11px] text-red-500 mt-1 italic">{error}</p>}
 
-      {showGuideline && guideline && (
-        <p className="text-[11px] text-blue-400 mt-1 italic">{guideline}</p>
+      {showGuideline && (
+        <p
+          className={`text-[11px] mt-1 italic ${
+            error ? "text-red-500" : "text-blue-400"
+          }`}
+        >
+          {guideline}
+        </p>
       )}
     </div>
   );

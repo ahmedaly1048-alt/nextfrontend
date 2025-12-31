@@ -25,7 +25,7 @@ export default function AnimatedAlert({
     <div
       className={`
     fixed top-4 lg:top-[200px]   
-    right-4 lg:right-16         
+    right-2 lg:right-16         
     left-1/2 transform -translate-x-1/2 sm:left-auto sm:translate-x-0 /* small screens: centered */
     bg-black border ${styles[type]}
     rounded-xl px-6 py-4
