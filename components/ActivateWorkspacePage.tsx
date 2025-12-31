@@ -110,7 +110,11 @@ export default function ActivateWorkspacePage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6">
       {/* <div className="transform scale-80"> */}
-      <div className=" transform scale-80 w-full max-w-md sm:max-w-[420px] md:max-w-[480px] rounded-2xl bg-[#030711] border border-[#1B2336] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
+      <div className=" transform 
+                    sm:scale-78    /* small screens */
+                    md:scale-120    /* tablets */
+                    lg:scale-160 
+                    xl:scale-80  w-full max-w-md sm:max-w-[420px] md:max-w-[480px] rounded-2xl bg-[#030711] border border-[#1B2336] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative">
         {/* Header */}
         <div className="flex flex-col items-center gap-2 mb-5 sm:mb-6">
           <div className="w-14 h-13 sm:w-15 sm:h-14 rounded-xl bg-[#0E1A33] flex items-center justify-center border border-[#1E2A45]">

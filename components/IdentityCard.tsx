@@ -269,9 +269,31 @@ export default function IdentityCard() {
   }, [alert]);
 
   return (
-    <div className="h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6 overflow-hidden">
-      <div className="transform scale-76 ">
-        <div className="w-full max-w-md sm:max-w-[420px] md:max-w-[560px] rounded-2xl bg-[#030711] border border-[#18181B] shadow-[0_0_40px_rgba(0,0,0,0.8)] p-5 sm:p-6 md:p-7 text-white relative ">
+    <div className="min-h-screen lg:h-screen w-full flex items-center justify-center bg-[#030711] px-4 sm:px-6 overflow-hidden">
+    
+    <div className="transform 
+                    sm:scale-78    /* small screens */
+                    md:scale-120    /* tablets */
+                    lg:scale-160 
+                    xl:scale-75   /* desktops */
+                    ">
+      <div
+        className="
+          w-full 
+          max-w-[95vw]        /* mobile width */
+          sm:max-w-[480px]    /* small tablets */
+          md:max-w-[560px]    /* large tablets */
+          lg:max-w-[600px]    /* desktops */
+          xl:max-w-[640px]    /* extra large screens */
+          rounded-2xl 
+          bg-[#030711] 
+          border border-[#18181B] 
+          shadow-[0_0_40px_rgba(0,0,0,0.8)] 
+          p-5 sm:p-6 md:p-7 
+          text-white 
+          relative
+        "
+      >
           {/* Header */}
           <div className="flex flex-col items-center gap-2 mb-3">
             <div className="w-14 h-13 sm:w-15 sm:h-14 rounded-xl bg-[#0E1A33] flex items-center justify-center border border-[#1E2A45]">
@@ -372,7 +394,6 @@ export default function IdentityCard() {
             </div>
 
             {/* Strength Bars */}
-            {/* Strength Bars – space reserved */}
             <div
               className={`flex gap-1 mt-2 h-2 ${
                 form.password && strength ? "opacity-100" : "opacity-0"
@@ -399,7 +420,11 @@ export default function IdentityCard() {
             onChange={(v) => handleChange("orgCode", v)}
             error={errors.orgCode}
             guideline={getGuideline("orgCode", form.orgCode)}
-            submitted={submitted}
+            helper={
+              !errors.orgCode && !getGuideline("orgCode", form.orgCode)
+                ? "Unique signature defining your AI’s behavioral constraints."
+                : ""
+            }
             required
           />
 
@@ -454,13 +479,13 @@ export default function IdentityCard() {
 
           <button
             onClick={handleSubmit}
-            className="w-full h-11 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] transition font-medium"
+            className="w-full h-11 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] transition font-medium -translate-y-6"
           >
             Create AI Identity
           </button>
 
           <Link href="/activate/workspace">
-            <p className="text-center text-xs text-gray-400 mt-4 cursor-pointer hover:text-gray-300">
+            <p className="text-center text-xs text-gray-400 -mt-2 cursor-pointer hover:text-gray-300">
               Back to Entry
             </p>
           </Link>
@@ -491,6 +516,7 @@ interface FieldProps {
   guideline?: string;
   required?: boolean;
   submitted?: boolean;
+  helper?: string;
 }
 
 function Field({
@@ -502,6 +528,7 @@ function Field({
   guideline,
   error,
   required,
+  helper,
 }: FieldProps) {
   // Border color logic
   const borderColorClass = error
@@ -532,14 +559,13 @@ function Field({
         />
       </div>
 
-      {/* Reserved space for error/guideline */}
       <div className={reservedSpace}>
         {error ? (
           <p className="text-[11px] text-red-500 italic">{error}</p>
+        ) : guideline ? (
+          <p className="text-[11px] text-blue-400 italic">{guideline}</p>
         ) : (
-          guideline && (
-            <p className="text-[11px] text-blue-400 italic">{guideline}</p>
-          )
+          helper && <p className="text-[11px] text-gray-500 italic">{helper}</p>
         )}
       </div>
     </div>
