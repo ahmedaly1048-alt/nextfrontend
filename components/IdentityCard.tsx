@@ -52,7 +52,6 @@ function getPasswordStrength(password: string): PasswordStrength | null {
 /* ---------------- Main Component ---------------- */
 export default function IdentityCard() {
   const [showPassword, setShowPassword] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<FormType>({
@@ -73,6 +72,7 @@ export default function IdentityCard() {
     role: "",
   });
 
+  const [submitted, setSubmitted] = useState(false); // track first submit
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "info" | "warning";
@@ -96,7 +96,14 @@ export default function IdentityCard() {
 
   const handleChange = (key: keyof FormType, value: string) => {
     setForm({ ...form, [key]: value });
-    validateField(key, value);
+
+    // Dynamic validation
+    if (submitted) {
+      validateField(key, value);
+    } else {
+      // before first submit, clear error dynamically
+      setErrors((prev) => ({ ...prev, [key]: "" }));
+    }
   };
 
   const validateField = (key: keyof FormType, value: string) => {
@@ -132,7 +139,43 @@ export default function IdentityCard() {
     setErrors((prev) => ({ ...prev, [key]: error }));
   };
 
+  const getGuideline = (key: keyof FormType, value: string) => {
+    if (!value) return "";
+
+    switch (key) {
+      case "name":
+        if (!/^[A-Za-z\s]+$/.test(value))
+          return "Enter valid name (letters only).";
+        break;
+
+      case "email":
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          return "Enter a valid email address.";
+        break;
+
+      case "password":
+        if (value.length < 6) return "Minimum 6 characters required.";
+        if (!/[A-Z]/.test(value))
+          return "Include at least one uppercase letter.";
+        if (!/[0-9]/.test(value)) return "Include at least one number.";
+        break;
+
+      case "orgCode":
+        if (!/^\d{6}$/.test(value)) return "Org code must be exactly 6 digits.";
+        break;
+    }
+
+    return "";
+  };
+
   const handleSubmit = () => {
+    setSubmitted(true);
+
+    // Validate all required fields
+    Object.keys(form).forEach((key) =>
+      validateField(key as keyof FormType, form[key as keyof FormType])
+    );
+
     const requiredFields: (keyof FormType)[] = [
       "name",
       "email",
@@ -140,7 +183,10 @@ export default function IdentityCard() {
       "orgCode",
       "role",
     ];
-    const invalidFields = requiredFields.filter((f) => !form[f] || errors[f]);
+    const invalidFields = requiredFields.filter(
+      (f) => !form[f] || errors[f]
+    );
+
     if (invalidFields.length > 0) {
       setAlert({
         type: "error",
@@ -148,6 +194,7 @@ export default function IdentityCard() {
       });
       return;
     }
+
     setAlert({
       type: "success",
       message: "AI Identity created successfully!",
@@ -187,8 +234,9 @@ export default function IdentityCard() {
           placeholder="John Doe"
           value={form.name}
           onChange={(v) => handleChange("name", v)}
-          bgColor={getInputBg(form.name)}
           error={errors.name}
+          guideline={getGuideline("name", form.name)}
+          submitted={submitted}
           required
         />
 
@@ -198,18 +246,19 @@ export default function IdentityCard() {
           placeholder="info@subventa.com"
           value={form.email}
           onChange={(v) => handleChange("email", v)}
-          bgColor={getInputBg(form.email)}
           error={errors.email}
+          guideline={getGuideline("email", form.email)}
+          submitted={submitted}
           required
         />
 
         {/* Password */}
         <div className="mb-4">
-          <label className="text-xs text-gray-300 mb-1 block font-semibold">
+          <label className="text-xs text-gray-300 mb-1.5 block font-semibold">
             SECURE PASSWORD <span className="text-[#2563EB]">*</span>
             {strength && (
               <span
-                className={`float-right text-xs font-bold ${
+                className={`float-right text-[11px] font-bold ${
                   strength.color === "bg-red-500"
                     ? "text-red-500"
                     : strength.color === "bg-yellow-500"
@@ -223,8 +272,12 @@ export default function IdentityCard() {
           </label>
 
           <div
-            className={`flex items-center gap-2 border border-[#1E2A45] rounded-lg px-3 h-12 ${
-              form.password ? "bg-[#0E1A33]" : "bg-gray-800/20"
+            className={`flex items-center gap-2 border rounded-lg px-3 h-12 ${
+              errors.password && submitted
+                ? "border-red-500"
+                : form.password
+                ? "bg-[#0E1A33] border-blue-500"
+                : "bg-gray-800/20 border-[#1E2A45]"
             }`}
           >
             <Lock size={16} className="text-gray-400" />
@@ -237,7 +290,6 @@ export default function IdentityCard() {
               className="bg-transparent w-full outline-none text-sm text-white placeholder-gray-500 font-semibold"
             />
 
-            {/* Eye Toggle */}
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
@@ -247,9 +299,17 @@ export default function IdentityCard() {
             </button>
           </div>
 
+           {(errors.password && submitted) && (
+            <p className="text-[11px] text-red-500 mt-1 italic">{errors.password}</p>
+          )}
+
+          {(!errors.password && form.password) && (
+            <p className="text-[11px] text-gray-400 mt-1 italic">{getGuideline("password", form.password)}</p>
+          )}
+
           {/* Strength Bars */}
           {strength && (
-            <div className="flex gap-1 mt-2">
+            <div className="flex gap-1 mt-2 text-xs">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
@@ -261,22 +321,18 @@ export default function IdentityCard() {
             </div>
           )}
 
-          {errors.password && (
-            <p className="text-[11px] text-gray-500 mt-1 italic">
-              {errors.password}
-            </p>
-          )}
+         
         </div>
 
         <Field
           icon={<Fingerprint size={16} />}
           label="ORGANIZATION PERSONALITY CODE"
           placeholder="233665"
-          helper="Unique signature defining your AI’s behavioral constraints."
           value={form.orgCode}
           onChange={(v) => handleChange("orgCode", v)}
-          bgColor={getInputBg(form.orgCode)}
           error={errors.orgCode}
+          guideline={getGuideline("orgCode", form.orgCode)}
+          submitted={submitted}
           required
         />
 
@@ -287,13 +343,12 @@ export default function IdentityCard() {
             placeholder="Acme"
             value={form.organization}
             onChange={(v) => handleChange("organization", v)}
-            bgColor={getInputBg(form.organization)}
             error={errors.organization}
           />
 
           {/* Role Dropdown */}
           <div className="mb-4 relative" ref={dropdownRef}>
-            <label className="text-xs text-gray-300 mb-1 block font-semibold">
+            <label className="text-xs text-gray-300 mb-1.5 block font-semibold">
               ROLE <span className="text-[#2563EB]">*</span>
             </label>
 
@@ -347,16 +402,17 @@ export default function IdentityCard() {
   );
 }
 
+/* ---------------- Field Component ---------------- */
 interface FieldProps {
   icon: React.ReactNode;
   label: string;
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
-  helper?: string;
-  bgColor?: string;
   error?: string;
+  guideline?: string;
   required?: boolean;
+  submitted?: boolean;
 }
 
 function Field({
@@ -365,11 +421,20 @@ function Field({
   placeholder,
   value,
   onChange,
-  helper,
-  bgColor,
+  guideline,
   error,
   required,
+  submitted,
 }: FieldProps) {
+  const borderColorClass = error
+    ? "border-red-500"
+    : value
+    ? "border-blue-500"
+    : "border-[#1E2A45]";
+
+  // Show guideline if there's no error and field is non-empty
+  const showGuideline = value && !error;
+
   return (
     <div className="mb-4">
       <label className="text-xs text-gray-300 mb-1.5 block font-semibold">
@@ -378,9 +443,7 @@ function Field({
       </label>
 
       <div
-        className={`flex items-center gap-2 rounded-lg px-3 h-11 sm:h-12 border ${
-          value ? "border-blue-500" : "border-[#1E2A45]"
-        } bg-gray-800/20 focus-within:border-blue-500 transition-colors`}
+        className={`flex items-center gap-2 rounded-lg px-3 h-11 sm:h-12 border ${borderColorClass} bg-gray-800/20 focus-within:border-blue-500 transition-colors`}
       >
         <span className="text-gray-400">{icon}</span>
         <input
@@ -391,11 +454,9 @@ function Field({
         />
       </div>
 
-      {helper && (
-        <p className="text-[11px] text-gray-500 mt-1 italic">{helper}</p>
-      )}
-      {error && (
-        <p className="text-[11px] text-gray-500 mt-1 italic">{error}</p>
+      {error && <p className="text-[11px] text-red-500 mt-1 italic">{error}</p>}
+      {showGuideline && guideline && (
+        <p className="text-[11px] text-blue-400 mt-1 italic">{guideline}</p>
       )}
     </div>
   );

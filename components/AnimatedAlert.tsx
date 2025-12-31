@@ -16,7 +16,7 @@ export default function AnimatedAlert({
 }: AnimatedAlertProps) {
   const styles: Record<"success" | "error" | "info" | "warning", string> = {
     success: "border-[#2563EB]",
-    error: "border-[#2563EB]",
+    error: "border-red-500",
     info: "border-[#2563EB]",
     warning: "border-yellow-400",
   };

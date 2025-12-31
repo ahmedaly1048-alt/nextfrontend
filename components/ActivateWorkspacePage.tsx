@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Mail, Lock, Hash, Eye, EyeOff } from "lucide-react";
+import { Shield, Mail, Lock, Hash, Eye, EyeOff, ArrowRight } from "lucide-react";
 import AnimatedAlert from "@/components/AnimatedAlert";
 import Link from "next/link";
-
 
 /* ---------------- Types ---------------- */
 interface FormType {
@@ -33,6 +32,8 @@ export default function ActivateWorkspacePage() {
     type: "success" | "error" | "info" | "warning";
     message: string;
   } | null>(null);
+
+  const [submitted, setSubmitted] = useState(false); // track if user tried to submit
 
   /* ---------------- Helpers ---------------- */
   const getInputBg = (value: string) =>
@@ -69,11 +70,18 @@ export default function ActivateWorkspacePage() {
 
   const handleChange = (key: keyof FormType, value: string) => {
     setForm({ ...form, [key]: value });
-    validateField(key, value);
+    if (submitted) validateField(key, value); // only validate while typing if form was submitted
   };
 
   /* ---------------- Submit ---------------- */
   const handleSubmit = () => {
+    setSubmitted(true); // mark form as submitted
+
+    // validate all fields on submit
+    Object.keys(form).forEach((key) =>
+      validateField(key as keyof FormType, form[key as keyof FormType])
+    );
+
     if (!form.identityId && !form.email) {
       setAlert({
         type: "error",
@@ -158,7 +166,7 @@ export default function ActivateWorkspacePage() {
 
         {/* Password */}
         <div className="mb-5 sm:mb-6">
-          <label className="text-[11px] sm:text-xs text-gray-300 mb-1 block font-semibold">
+          <label className="text-[11px] sm:text-xs text-gray-300 mb-1.5 block font-semibold">
             PASSWORD
           </label>
 
@@ -181,7 +189,7 @@ export default function ActivateWorkspacePage() {
           </div>
 
           {errors.password && (
-            <p className="text-[11px] text-gray-500 mt-1 italic">
+            <p className="text-[11px] text-blue-400 mt-1 italic">
               {errors.password}
             </p>
           )}
@@ -190,9 +198,9 @@ export default function ActivateWorkspacePage() {
         {/* CTA */}
         <button
           onClick={handleSubmit}
-          className="w-full h-11 sm:h-12 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] transition font-medium font-semibold"
+          className="w-full h-11 sm:h-12 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] transition font-medium font-semibold flex items-center justify-center gap-2"
         >
-          Activate Session →
+          Activate Session <ArrowRight className="w-4 h-4" />
         </button>
 
         <Link href="/request">
@@ -244,7 +252,7 @@ function Field({
         </label>
 
         {helper && (
-          <span className="text-[10px] sm:text-[11px] text-gray-500 ">
+          <span className="text-[10px] sm:text-[11px] text-gray-500 italic">
             {helper}
           </span>
         )}
@@ -268,7 +276,7 @@ function Field({
       </div>
 
       {error && (
-        <p className="text-[11px] text-gray-500 mt-1 italic">{error}</p>
+        <p className="text-[11px] text-blue-400 mt-1 italic">{error}</p>
       )}
     </div>
   );
